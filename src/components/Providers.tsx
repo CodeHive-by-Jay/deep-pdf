@@ -1,5 +1,5 @@
 'use client'
-import react from "react";
+import React from "react";
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query"
 
 type Props = {
@@ -8,9 +8,9 @@ type Props = {
 
 const queryClient = new QueryClient()
 
-const Providers = ({ childres  => {
+const Providers = ({ children }: Props) => {
     return (
-        <div>Providers</div>
+        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
     )
 }
 

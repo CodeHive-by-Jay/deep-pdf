@@ -4,34 +4,63 @@ import { Inbox } from "lucide-react";
 import React from "react";
 import { useDropzone } from "react-dropzone";
 import { useAuth } from "@clerk/nextjs";
+import { useMutation } from "@tanstack/react-query";
+import axios from "axios";
+import toast from "react-hot-toast"
 
 const FileUpload = () => {
     const { userId, getToken } = useAuth();
+
+    const { mutate } = useMutation({
+        mutationFn: async ({ file_key, file_name }: { file_key: string, file_name: string }) => {
+            const response = await axios.post("/api/create-chat", {
+                file_key,
+                file_name
+            });
+            return response.data;
+        },
+        onSuccess: (data) => {
+            console.log("Chat created successfully:", data);
+        },
+        onError: (error) => {
+            console.error("Error creating chat:", error);
+        }
+    });
 
     const { getRootProps, getInputProps } = useDropzone({
         accept: { "application/pdf": [".pdf"] },
         maxFiles: 1,
         onDrop: async (acceptedFiles) => {
-            console.log("Accepted files:", acceptedFiles);
             const file = acceptedFiles[0];
+
             if (file.size > 10 * 1024 * 1024) {
-                alert("Please upload a smaller file");
+                toast.error("Max file size is 10MB.");
                 return;
             }
 
+            const toastId = toast.loading("Uploading PDF...");
+
             try {
                 const token = await getToken({ template: "supabase" });
-                if (!token || !userId) {
-                    throw new Error("User is not authenticated");
-                }
+                const currentUserId = userId;
 
-                const data = await uploadToSupabaseBucket(file, userId, token);
-                console.log("Uploaded file data:", data);
+                if (!token || !currentUserId) throw new Error("Auth error");
+
+                const data = await uploadToSupabaseBucket(file, currentUserId, token);
+
+                toast.success("Upload successful!", { id: toastId });
+
+                mutate({
+                    file_key: data.file_key,
+                    file_name: data.file_name,
+                });
             } catch (error) {
-                console.error("Error uploading file:", error);
+                console.error("Upload error:", error);
+                toast.error("Something went wrong. Try again.", { id: toastId });
             }
         },
     });
+
 
     return (
         <div className="p-2 bg-[#2C1810]/50 rounded-xl border border-amber-100/20 w-full max-w-sm mx-auto">
