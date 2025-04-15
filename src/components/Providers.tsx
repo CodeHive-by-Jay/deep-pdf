@@ -2,9 +2,13 @@
 import react from "react";
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query"
 
-type Props = {}
+type Props = {
+    children: React.ReactNode
+}
 
-const Providers = (props: Props) => {
+const queryClient = new QueryClient()
+
+const Providers = ({ childres  => {
     return (
         <div>Providers</div>
     )
