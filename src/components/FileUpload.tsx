@@ -20,7 +20,7 @@ const FileUpload = () => {
             return response.data;
         },
         onSuccess: (data) => {
-            console.log("Chat created successfully:", data);
+            console.log(data);
         },
         onError: (error) => {
             console.error("Error creating chat:", error);
