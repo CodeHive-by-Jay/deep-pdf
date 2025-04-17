@@ -1,23 +1,21 @@
-import { LoadBucketIntoPinecone } from "@/lib/pinecone";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
     try {
         const body = await req.json();
         const { file_key, file_name } = body;
-        console.log("Processing file:", { file_key, file_name });
 
-        const { pages, rawText } = await LoadBucketIntoPinecone(file_key);
+        console.log("Received file:", { file_key, file_name });
 
         return NextResponse.json({
-            success: true,
-            pageCount: pages.length,
-            rawText
+            message: "Chat created successfully",
+            file_key,
+            file_name
         });
     } catch (error) {
         console.error("Error in create-chat API:", error);
         return NextResponse.json(
-            { error: "Failed to process PDF" },
+            { error: "Failed to create chat" },
             { status: 500 }
         );
     }
