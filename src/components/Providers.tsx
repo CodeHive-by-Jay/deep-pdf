@@ -6,11 +6,22 @@ type Props = {
     children: React.ReactNode
 }
 
-const queryClient = new QueryClient()
+// Create a client with better defaults to avoid unnecessary refetches
+const queryClient = new QueryClient({
+    defaultOptions: {
+        queries: {
+            staleTime: 60 * 1000, // 1 minute
+            refetchOnWindowFocus: false,
+        },
+    },
+});
 
 const Providers = ({ children }: Props) => {
+    // Use React.useState to ensure the QueryClient is only created once per session
+    const [client] = React.useState(() => queryClient);
+
     return (
-        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+        <QueryClientProvider client={client}>{children}</QueryClientProvider>
     )
 }
 

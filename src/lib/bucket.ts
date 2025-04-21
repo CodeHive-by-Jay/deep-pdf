@@ -1,5 +1,25 @@
 import { createClient } from '@supabase/supabase-js';
 
+// Create the Supabase client once outside the function
+// This prevents multiple client instances from being created
+const createSupabaseClient = (token: string) => {
+    return createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
+        {
+            auth: {
+                autoRefreshToken: false,
+                persistSession: false
+            },
+            global: {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            }
+        }
+    );
+};
+
 export const uploadToSupabaseBucket = async (file: File, userId: string, token: string) => {
     try {
         if (!token) {
@@ -7,21 +27,7 @@ export const uploadToSupabaseBucket = async (file: File, userId: string, token: 
         }
 
         // Create a new Supabase client with the Clerk JWT
-        const supabase = createClient(
-            process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-            process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
-            {
-                auth: {
-                    autoRefreshToken: false,
-                    persistSession: false
-                },
-                global: {
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
-                }
-            }
-        );
+        const supabase = createSupabaseClient(token);
 
         // Clean the file name to prevent path traversal
         const safeFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
@@ -58,6 +64,7 @@ export const uploadToSupabaseBucket = async (file: File, userId: string, token: 
 };
 
 export function getSupabaseFileUrl(fileKey: string) {
+    // Create a simple client for public URL generation (no auth needed)
     const supabase = createClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL || '',
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
